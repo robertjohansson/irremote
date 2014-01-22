@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="refresh" content="5">
+<script>
+
+//var x=document.getElementById("myDiv");
+
+function showPosition(position)
+{
+  var xmlhttp;
+  if (window.XMLHttpRequest)
+  {// code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp=new XMLHttpRequest();
+  }
+  else
+  {// code for IE6, IE5
+    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  
+  xmlhttp.open("POST","",true);
+
+  
+  xmlhttp.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+  
+  
+  var tosend = "xcoord=" + position.coords.latitude + "&ycoord=" + position.coords.longitude;
+
+  xmlhttp.send(tosend);
+
+  
+  document.getElementById("responseDiv").innerHTML="there";
+
+  xmlhttp.onreadystatechange=function()
+  {
+    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+    {
+      document.getElementById("responseDiv").innerHTML=xmlhttp.responseText;
+    }
+  }
+}
+
+function showError(error)
+{
+  switch(error.code) 
+  {
+    case error.PERMISSION_DENIED:
+      document.getElementById("errorDiv").innerHTML="User denied the request for Geolocation."
+      break;
+    case error.POSITION_UNAVAILABLE:
+      document.getElementById("errorDiv").innerHTML="Location information is unavailable."
+      break;
+    case error.TIMEOUT:
+      document.getElementById("errorDiv").innerHTML="The request to get user location timed out."
+      break;
+    case error.UNKNOWN_ERROR:
+      document.getElementById("errorDiv").innerHTML="An unknown error occurred."
+      break;
+  }
+}
+
+
+window.onload = function loadGPSgrabber()
+{
+  if (navigator.geolocation)
+  {
+
+    options = {
+      enableHighAccuracy: true,
+      timeout:            30000,  // milliseconds (30 seconds)
+      maximumAge:         600000 // milliseconds (10 minutes)
+    }
+    //document.getElementById("myDiv").innerHTML="Geolocation is supported by this browser.";
+    navigator.geolocation.getCurrentPosition(showPosition, showError, options);
+  }
+  else
+  {
+    document.getElementById("myDiv").innerHTML="Geolocation is not supported by this browser.";
+  }
+}
+</script>
+</head>
+<body>
+
+<h2>AJAX5</h2>
+<b>Resp</b><div id="responseDiv">hello2</div>
+<b>Err</b><div id="errorDiv">none yet</div>
+ 
+</body>
+</html>

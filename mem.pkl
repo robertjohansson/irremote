@@ -1,0 +1,34 @@
+(dp0
+S'new key'
+p1
+I543
+sS'open red'
+p2
+I12345
+sS'open blue'
+p3
+S'something else'
+p4
+s.(dp0
+S'new key'
+p1
+I543
+sS'open red'
+p2
+I12345
+sS'open blue'
+p3
+S'something else'
+p4
+s.(dp0
+S'new key'
+p1
+I543
+sS'open red'
+p2
+I12345
+sS'open blue'
+p3
+S'something else'
+p4
+s.
