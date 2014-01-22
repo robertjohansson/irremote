@@ -16,14 +16,21 @@ class TheBrain:
 
     def __init__(self):
 
+        self.pw = "123"
+        self.us = "robert"
+
         # inner states       
         self.communicationHandshake = False
         self.communicationHandshakeTimestamp = 0
 
         # used to add a new device
-        self.addingIRSignal = False
-        self.currentAddedIRSignal = None
+        self.waitingForAuthetification = False
+        self.writemode = False
+        
+        self.currentUser = None
+        self.currentPassword = None
 
+        self.addDevice = ["write mode","add device"]
         
         self.piNames = ["pi","bi","pie"]
         self.addIRSignalKeywords = ["add device","new signal"]
@@ -64,7 +71,7 @@ class TheBrain:
     def saveMemoryDic(self):
         
         import pickle
-        output = open('mem.pkl', 'csv.writer(f,logMessage)')
+        output = open('mem.pkl', 'wb')
         pickle.dump(self.memory,output)
 
     def addKeyToIR(self,keyword,ir):
@@ -92,63 +99,117 @@ class TheBrain:
         # if the communication handshake has timeout
         if (self.communicationHandshakeTimestamp + 10) <= time.time():
             self.communicationHandshake = False
+            self.waitingForAuthetification = False
+            self.writemode = False
+
+            self.currentUser = None
+            self.currentPassword = None
         
 
         # if communication handshake have been made
         if self.communicationHandshake:
 
-            if keyword in self.piNames:
+            #if we are in writemode
+            if self.writemode:
+
+                pass
+
                 
-                self.communicationHandshakeTimestamp = time.time()
-                return "Yes sir"         
 
-            # check to see if keyword being used exists in memory
-            elif keyword in self.memory:
-                #renew time step
-                self.communicationHandshakeTimestamp = time.time()
-
-                # make action upon keyword
-                #
-                #
-                #
-                
-                # log the action done
-                #
-                #
-                #
-
-                logMessage = "Sucessfully done key %s val %s" % (str(keyword),str(self.memory[keyword]))
-
-                self.loggData(logMessage)
-                
-                return logMessage
             else:
-                return "That keyword is not defined"
+
+                # if we are waiting for username and password
+                if self.waitingForAuthetification:
+
+                    # check to see is we have stored a username
+                    if self.currentUser == None:
+
+                        self.currentUser = keyword
+                    else:
+                        self.currentPassword = keyword
+                        
+                        # check the username and password
+                        if self.currentUser == self.us and self.currentPassword == self.pw:
+
+                            # now we are in write mode
+
+                            self.writemode = True
+                            return "welcome to write mode enter a keyword"
+
+                    
+
+                    return "Enter your password"
+                    
+                else:
+
+                    #if we want to add a device
+                    if keyword in self.addDevice:
+
+                        # do some authentification
+                        self.waitingForAuthetification = True
+                        self.communicationHandshakeTimestamp = time.time()
+
+                        return "Enter your username"
+                        
+                    elif keyword in self.piNames:
+                        
+                        self.communicationHandshakeTimestamp = time.time()
+                        return "Yes sir"         
+
+                    # check to see if keyword being used exists in memory
+                    elif keyword in self.memory:
+                        #renew time step
+                        self.communicationHandshakeTimestamp = time.time()
+
+                        # make action upon keyword
+                        #
+                        #
+                        #
+
+                        
+                        
+                        # log the action done
+                        #
+                        #
+                        #
+
+                        logMessage = "Sucessfully done key %s val %s" % (str(keyword),str(self.memory[keyword]))
+
+                        self.loggData(logMessage)
+                        
+                        return logMessage
+                    else:
+                        return "That keyword is not defined"
 
         # establish communication or regard input as noise
         else:
 
             if keyword in self.piNames:
-                
+                            
                 self.communicationHandshake = True
                 self.communicationHandshakeTimestamp = time.time()
                 return "Yes sir"
 
             else:
                 return "Noise recieved handshake not made"
-        
-
-        return ""
 
 if __name__ == "__main__":
 
     b = TheBrain()
 
-    b.loggData("Hello my friend")
+    #b.loggData("Hello my friend")
 
-    #b.addKeyToIR("new key", 543)
+    
 
-    print b.memory
+    #print b.memory
+
+    print b.addMessage("pi")
+    #b.addKeyToIR("this is the latest name", 543)
+    print b.addMessage("this is the latest name")
+    
+    #print b.addMessage("write mode")
+    #print b.addMessage("robert")
+    #print b.addMessage("123")
 
     
 

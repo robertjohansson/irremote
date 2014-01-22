@@ -1,34 +1,24 @@
 (dp0
-S'new key'
+S'unknown'
 p1
 I543
-sS'open red'
+sS'this is the latest name'
 p2
-I12345
-sS'open blue'
+I543
+sS'new key'
 p3
-S'something else'
+I543
+sS'unknown2'
 p4
-s.(dp0
-S'new key'
-p1
+I543
+sS'open blue'
+p5
+S'something else'
+p6
+sS'new'
+p7
 I543
 sS'open red'
-p2
+p8
 I12345
-sS'open blue'
-p3
-S'something else'
-p4
-s.(dp0
-S'new key'
-p1
-I543
-sS'open red'
-p2
-I12345
-sS'open blue'
-p3
-S'something else'
-p4
 s.
