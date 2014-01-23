@@ -1,9 +1,34 @@
 """
 The 3 laws of Robotics
 
-A robot may not injure a human being or, through inaction, allow a human being to come to harm.
-A robot must obey the orders given to it by human beings, except where such orders would conflict with the First Law.
-A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.
+1 A robot may not injure a human being or, through inaction, allow a human being to come to harm.
+2 A robot must obey the orders given to it by human beings, except where such orders would conflict with the First Law.
+3 A robot must protect its own existence as long as such protection does not conflict with the First or Second Law.
+
+All messages comming in to the brain is through
+    def addMessage(self,keyword):
+
+
+First the current context must be esablished
+
+1. get the current context
+
+2. send the message to the function associated with the current context
+    {NO_COMMUNICATION_HANDSHAKE,WAIT_FOR_COMMAND,ANY_OTHER_CONTEXT}
+
+3. reply the response from the context handler
+
+* NO_COMMUNICATION_HANDSHAKE
+    look for naming
+    
+* WAIT_FOR_COMMAND
+    a command can be a keyword or a system comman
+
+    1. Look for system command
+    2. Look for keyword
+    3. Look for regexp match
+
+* ANY_OTHER_CONTEXT
 """
 
 import time
@@ -205,7 +230,7 @@ if __name__ == "__main__":
 
     print b.addMessage("pi")
     #exit
-    b.addKeyToIR("this is the latest name", 543)
+    #b.addKeyToIR("this is the latest name", 543)
     print b.addMessage("this is the latest name")
     
     #print b.addMessage("write mode")
