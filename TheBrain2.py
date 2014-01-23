@@ -36,7 +36,85 @@ import csv
 import sys
 from time import gmtime, strftime, localtime
 
-class AddDeviceHandler:
+class AddDeviceKeywordHandler:
+    """
+    newMessage handler
+
+    Context: ADDING_DEVICE_KEYWORD
+        Handler for adding device keyword. Makes sure the same keyword is given twice
+
+    Leave using context:
+
+        ADDING_DEVICE_KEYWORD - after one keyword has been added
+        ADDING_DEVICE_KEYWORD - after two none similar keywords have been added
+        
+        ADDING_DEVICE_IR - after two keywords have been given successfully
+
+
+    ir handler
+
+    Context: ADDING_DEVICE_IR
+        Handler for storing the Keyword and ir
+
+    Leave using context:
+
+        NO_COMMUNICATION_HANDSHAKE - when new keyword and ir is stored
+        
+    """
+
+    tmpKeyword = None
+
+    @classmethod
+    def newMessage(self,message,init = False):
+
+        if self.tmpKeyword == None:
+
+            self.tmpKeyword = message
+
+            return ("ADDING_DEVICE_KEYWORD","You said - " + message +" - Please repeat it")
+
+        else:
+
+            # verify that the same keyword have been given
+
+            if self.tmpKeyword == message:
+
+                return ("ADDING_DEVICE_IR","keyword has been verifyed. Please give me IR")
+
+            else:
+
+                self.tmpKeyword = None
+
+                return("ADDING_DEVICE_KEYWORD","The keyword are not the same. Choonse a keyword again")
+
+    @classmethod
+    def newIR(self,ir):
+
+        print "''''''''''''''''''Hello my friends''''''''''''''''''"
+
+        keyword = self.tmpKeyword
+
+        i = IRandKeyword('irandkey.csv')
+        i.addIr(keyword,ir)
+
+        print "\tadding keyword and ir to file"
+        
+        self.tmpKeyword = None
+        
+        return("NO_COMMUNICATION_HANDSHAKE","New device have been adden using keyword ")
+
+class AddDeviceVerifyUserHandler:
+    """
+    Context: ADDING_DEVICE_VERIFY_USER
+        Handler for checking user name and password
+
+    Leave using context:
+
+        ADDING_DEVICE_VERIFY_USER - after the username have been given
+        ADDING_DEVICE_KEYWORD - after user and password have been verifyed
+        NO_COMMUNICATION_HANDSHAKE - when communication is established
+        
+    """
 
     pw = None
     user = None
@@ -49,7 +127,7 @@ class AddDeviceHandler:
             self.pw = None
             self.user = None
 
-            return ("ADDING_DEVICE","Please give me your username")
+            return ("ADDING_DEVICE_VERIFY_USER","Please give me your username")
 
         else:
 
@@ -57,7 +135,7 @@ class AddDeviceHandler:
 
                 self.user = message
 
-                return ("ADDING_DEVICE","Please give me your password")
+                return ("ADDING_DEVICE_VERIFY_USER","Please give me your password")
 
             else:
 
@@ -73,7 +151,7 @@ class AddDeviceHandler:
 
                 if users.isValid(self.user,self.pw):
                     
-                    return ("ADDING_DEVICE","Enter your keyword")
+                    return ("ADDING_DEVICE_KEYWORD","Enter your keyword")
 
                 else:
 
@@ -82,6 +160,10 @@ class AddDeviceHandler:
                     self.user = None
                     
                     return ("NO_COMMUNICATION_HANDSHAKE","Wrong user or password. Must start again")
+
+
+
+
 
 class ValidUsers:
 
@@ -99,13 +181,21 @@ class ValidUsers:
 
         with open('users.csv', 'a') as f:
             writer = csv.writer(f)
-            writer.writerow((username,pw))
+
+            import hashlib
+            m = hashlib.md5()
+            m.update(pw)
+            writer.writerow((username,m.hexdigest()))
 
     def isValid(self,user,pw):
 
         if user in self.users:
 
-            return (self.users[user] == pw)
+            import hashlib
+            m = hashlib.md5()
+            m.update(pw)
+
+            return (self.users[user] == m.hexdigest())
 
         else:
 
@@ -127,14 +217,43 @@ class TheBrain:
 
         
         self.systemCommands = {"add device" : "add device" , "new device" : "add device"}
-        self.systemCommandHandlers = {"add device" : AddDeviceHandler.newMessage}
+        self.systemCommandHandlers = {"add device" : AddDeviceVerifyUserHandler.newMessage}
         
 
-        self.contextHandler = {"NO_COMMUNICATION_HANDSHAKE" : self.makeHandshake
+        # context for messages
+        self.contextMessageHandler = {"NO_COMMUNICATION_HANDSHAKE" : self.makeHandshake
                                , "HAVE_COMMUNICATION_HANDSHAKE" : self.waitForCommand
-                               , "ADDING_DEVICE" : AddDeviceHandler.newMessage}
+                               , "ADDING_DEVICE_VERIFY_USER" : AddDeviceVerifyUserHandler.newMessage
+                               ,"ADDING_DEVICE_KEYWORD" : AddDeviceKeywordHandler.newMessage}
 
+        # context for ir signals
+        self.contextIrHandler = {"ADDING_DEVICE_IR" : AddDeviceKeywordHandler.newIR}
+
+        
         self.setDefaultContext()
+
+    def irSignal(self,irValue):
+
+        # check to see if the current context will recieve ir signals
+
+        print "\tADDING IR VALUE TO BRAIN"
+
+        self.lastMessage = "ir code [%s]" % irValue
+        self.lastResponse = ""
+        
+        if self.context in self.contextIrHandler:
+
+            (self.context,self.lastResponse) = self.contextIrHandler["ADDING_DEVICE_IR"](irValue)
+
+        else:
+
+            self.lastResponse = "Ignoring IR signal since context [%s] have no ir-handler" % self.context
+
+        
+        # we have the current context in self.context. Send the message to the correct context handler
+        #(self.context,response) = self.contextIrHandler[self.context](irValue)
+
+        return self.lastResponse
 
     def makeHandshake(self,message):
         """
@@ -163,21 +282,27 @@ class TheBrain:
         3. Look for regexp match        
         """
 
-        print "ENTERING WAIT FOR COMMAND"
+        # print "ENTERING WAIT FOR COMMAND"
 
 
         if message in self.systemCommands:
 
+            self.resetHandshakeTimeout()
+
             return self.systemCommandHandlers[message](message, True)
 
         #return ("got a comman","i donno")
-        return ("HAVE_COMMUNICATION_HANDSHAKE","i donno")
+        return ("HAVE_COMMUNICATION_HANDSHAKE","i have no keyword matching [%s]" % message)
 
         
 
     def setDefaultContext(self):
 
         self.context = "NO_COMMUNICATION_HANDSHAKE"
+
+    def resetHandshakeTimeout(self):
+
+        self.communicationHandshakeTimestamp = time.time()
 
     def setHandshakeEstablished(self):
 
@@ -205,26 +330,136 @@ class TheBrain:
 
 
         # we have the current context in self.context. Send the message to the correct context handler
-        (self.context,response) = self.contextHandler[self.context](message)
+        (self.context,response) = self.contextMessageHandler[self.context](message)
 
         self.lastResponse = response
+
+        # reset the timeout. Give the user another 10 seconds behore handshake breaks
+        self.resetHandshakeTimeout()
         
         return response
+
+    def getUsers(self):
+
+        us = ValidUsers("users.csv")
+        return us.users
+
+    def getKeywords(self):
+
+        ik = IRandKeyword("irandkey.csv")
+        return ik.keywords
         
 
     def __str__(self):
 
-        ret_str = "********** THE BRAIN *************\nContext %s\nCommunication timestamp %s\nMessage %s\nResponse %s" % (self.context,self.communicationHandshakeTimestamp,self.lastMessage,self.lastResponse)
+        ret_str = "********** THE BRAIN *************\nContext %s\nCommunication timestamp %s\nMessage %s\nResponse %s\n*********************************" % (self.context,self.communicationHandshakeTimestamp,self.lastMessage,self.lastResponse)
 
         return ret_str
 
-if __name__ == "__main__":
+class IRandKeyword:
+
+    def __init__(self,filename):
+
+        self.keywords = {}
+        
+        with open('irandkey.csv', 'rb') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                #print row
+                self.keywords[row[0]] = row[1]
+
+    def addIr(self,keyword,ir):
+
+        with open('irandkey.csv', 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow((keyword,ir))
+
+    def isValid(self,keyword):
+
+        return keyword in self.keywords
+
+    def getIR(self,keyword):
+
+        return self.keywords[keyword]
+
+"""
+        CODE FOR TESTING
+"""
+
+
+def testIR():
+
+    i = IRandKeyword('irandkey.csv')
+    i.addIr("green light","hello world")
+    print i.isValid("green light")
+    print i.getIR("green light")
+
+def testUsers():
 
     p = ValidUsers("users.csv")
-
     print p.isValid('robert','123')
 
+def runBrainInTextMode():
+
+    b = TheBrain()
+
+    i = None
+
+    print "Wellome to the brain"
+    print "i:ir code - to enter ir code"
+    print "b:status - to print status"
+    print "b:users - to print all users"
+    print "b:keywords - to print all users"
+
+    while i != "exit":
+
+        
+        i = raw_input()
+
+        if i[0:2] == "i:":
+
+            b.irSignal(i[2:])
+
+        elif i == "b:status":
+
+            print b
+
+        elif i == "b:users":
+
+            print b.getUsers()
+
+        elif i == "b:adduser":
+
+            print "user name"
+
+            
+
+            print "password"
+
+            print b.addUser()
+
+        elif i == "b:keywords":
+
+            print b.getKeywords()
+
+        else:
+
+            b.addMessage(i)
+
+            print "%s\t%s" % (b.lastResponse,b.context)
+        
+        # add timeout reset after every valid communication
+
+        # add ability to insert ir valur
+        
     
+if __name__ == "__main__":
+
+    
+
+    runBrainInTextMode()
+
+    exit
 
     b = TheBrain()
 
@@ -236,6 +471,9 @@ if __name__ == "__main__":
 
     print b
 
+    b.irSignal("--green light ir signal")
+
+    print b
 
     b.addMessage("add device")
 
@@ -245,13 +483,30 @@ if __name__ == "__main__":
 
     print b
 
-    b.addMessage("1234")
+    b.addMessage("123")
 
     print b
 
 
-    
+    b.addMessage("green light")
 
+    print b
+    
+    b.addMessage("green light 2")
+
+    print b
+
+    b.addMessage("green light")
+
+    print b
+
+    b.addMessage("green light")
+
+    print b
+
+    b.irSignal("--green light ir signal")
+
+    print b
     
     """
     print b
