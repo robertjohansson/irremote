@@ -339,6 +339,11 @@ class TheBrain:
         
         return response
 
+    def addUser(self,username,pw):
+
+        us = ValidUsers("users.csv")
+        us.addUser(username,pw)
+
     def getUsers(self):
 
         us = ValidUsers("users.csv")
@@ -407,6 +412,8 @@ def runBrainInTextMode():
 
     print "Wellome to the brain"
     print "i:ir code - to enter ir code"
+    print "b:adduser - adds a user"
+    
     print "b:status - to print status"
     print "b:users - to print all users"
     print "b:keywords - to print all users"
@@ -432,11 +439,13 @@ def runBrainInTextMode():
 
             print "user name"
 
-            
+            user = raw_input()
 
             print "password"
 
-            print b.addUser()
+            pw = raw_input()
+
+            b.addUser(user,pw)
 
         elif i == "b:keywords":
 
@@ -448,9 +457,7 @@ def runBrainInTextMode():
 
             print "%s\t%s" % (b.lastResponse,b.context)
         
-        # add timeout reset after every valid communication
-
-        # add ability to insert ir valur
+        # KeyError: 'ADDING_DEVICE_IR' when sending message for context at line 333
         
     
 if __name__ == "__main__":
@@ -459,96 +466,4 @@ if __name__ == "__main__":
 
     runBrainInTextMode()
 
-    exit
-
-    b = TheBrain()
-
-    #AddDeviceHandler.newMessage('hello',init = True)
-
-    print b
-
-    b.addMessage("pi")
-
-    print b
-
-    b.irSignal("--green light ir signal")
-
-    print b
-
-    b.addMessage("add device")
-
-    print b
-
-    b.addMessage("robert")
-
-    print b
-
-    b.addMessage("123")
-
-    print b
-
-
-    b.addMessage("green light")
-
-    print b
     
-    b.addMessage("green light 2")
-
-    print b
-
-    b.addMessage("green light")
-
-    print b
-
-    b.addMessage("green light")
-
-    print b
-
-    b.irSignal("--green light ir signal")
-
-    print b
-    
-    """
-    print b
-    
-    b.setHandshakeEstablished()
-
-    print b
-
-    b.setDefaultContext()
-
-    print b
-
-    b.addMessage("pi")
-
-    print b
-
-    b.addMessage("add device")
-
-    print b
-
-    """
-
-    #b.loggData("Hello my friend")
-
-    
-
-    #print b.memory
-
-    #print b.addMessage("pi")
-    #exit
-    #b.addKeyToIR("this is the latest name", 543)
-    #print b.addMessage("this is the latest name")
-    
-    #print b.addMessage("write mode")
-    #print b.addMessage("robert")
-    #print b.addMessage("123")
-
-    
-
-    """
-    b.addIRSignal("a ir signal hex112312311")
-    b.addIRKeyword("hex signal")
-
-    print b.currentAddedIRSignal
-    """    

@@ -1,24 +1,7 @@
 (dp0
-S'unknown'
+S'enpty'
 p1
-I543
-sS'this is the latest name'
+NsS'this is the latest name'
 p2
 I543
-sS'new key'
-p3
-I543
-sS'unknown2'
-p4
-I543
-sS'open blue'
-p5
-S'something else'
-p6
-sS'new'
-p7
-I543
-sS'open red'
-p8
-I12345
 s.
