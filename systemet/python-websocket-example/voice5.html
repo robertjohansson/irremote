@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>WebSocket Test</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script language="javascript" type="text/javascript">
+
+  var recognition;
+  var transcript_counter = 0;
+  var outputsoundmessage;
+
+  function init()
+  {
+
+    outputsoundmessage = document.getElementById("outputsoundmessage");
+    writeSoundMessage("setting up output sound message")
+
+    sound();
+    writeSoundMessage("Setting up sound")
+
+    startRecorder(event);
+    writeSoundMessage("Starting recorder")
+
+  }
+
+
+//writeToScreen('starting');
+  function sound() {
+	if (!('webkitSpeechRecognition' in window)) {
+	  writeSoundMessage("upgrade sound");
+	  upgrade();
+	} else {
+		writeSoundMessage("init sound");
+		recognition = new webkitSpeechRecognition();
+		recognition.continuous = true;
+		recognition.interimResults = false;
+
+		recognition.onstart = function() {writeSoundMessage("starting sound")};
+		recognition.onresult = function(event) 
+		{ 
+		  
+		  writeSoundMessage(String(event.results[transcript_counter++][0].transcript));
+
+		  // make a callback to the server
+		  
+
+		};
+		recognition.onerror = function(event) {writeSoundMessage(String(event.error))};
+		recognition.onend = function() {writeSoundMessage("end sound")};
+	}
+  }
+
+  function startRecorder(event) {
+  
+    recognition.lang = "en-US";
+    recognition.start();
+  }
+
+  function stopRecorder() {
+  
+    writeSound("stopping transcript")
+    recognition.stop();
+  }
+
+  function writeSoundMessage(message)
+  {
+    var pre = document.createElement("p");
+    pre.style.wordWrap = "break-word";
+    pre.innerHTML = "[" + message + "]";
+    outputsoundmessage.appendChild(pre);
+  }
+
+   window.addEventListener("load", init, false);
+
+
+</script>
+<h2>WebSocket Test</h2>
+<div id="outputsoundmessage"></div>
+</html>
