@@ -204,7 +204,8 @@ if __name__ == "__main__":
     #print b.memory
 
     print b.addMessage("pi")
-    #b.addKeyToIR("this is the latest name", 543)
+    #exit
+    b.addKeyToIR("this is the latest name", 543)
     print b.addMessage("this is the latest name")
     
     #print b.addMessage("write mode")
