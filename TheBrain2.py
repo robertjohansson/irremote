@@ -29,12 +29,41 @@ First the current context must be esablished
     3. Look for regexp match
 
 * ANY_OTHER_CONTEXT
+
+@copyright Robert Johansson
+            Byazit
+
+Version 0.2
 """
 
 import time
 import csv
 import sys
 from time import gmtime, strftime, localtime
+
+class IrSignalHandler:
+
+    @classmethod
+    def newKeyword(self,keyword,ircode):
+
+        
+        # add some code to trigger the actual ir signal
+
+        # logg the event
+
+        logMessage = "sending IR signal"
+
+        with open('logg.csv', 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow((strftime("%Y-%m-%d %H:%M:%S", localtime()),logMessage))
+
+        # return to NO_COMMUNICATION_HANDSHAKE context using no message feedback
+
+        return ("NO_COMMUNICATION_HANDSHAKE","IR signal has been sent")
+
+        
+
+        
 
 class AddDeviceKeywordHandler:
     """
@@ -90,7 +119,7 @@ class AddDeviceKeywordHandler:
     @classmethod
     def newIR(self,ir):
 
-        print "''''''''''''''''''Hello my friends''''''''''''''''''"
+        print "''''''''''''''''''Adding ir to file''''''''''''''''''"
 
         keyword = self.tmpKeyword
 
@@ -218,6 +247,13 @@ class TheBrain:
         
         self.systemCommands = {"add device" : "add device" , "new device" : "add device"}
         self.systemCommandHandlers = {"add device" : AddDeviceVerifyUserHandler.newMessage}
+
+        self.irHandler = IrSignalHandler.newKeyword
+        
+        self.irKeywords = {}
+        self.loadKeywords()
+
+        #self.keywords = {"green light" : IrSignalHandler.newKeyword}
         
 
         # context for messages
@@ -235,8 +271,6 @@ class TheBrain:
     def irSignal(self,irValue):
 
         # check to see if the current context will recieve ir signals
-
-        print "\tADDING IR VALUE TO BRAIN"
 
         self.lastMessage = "ir code [%s]" % irValue
         self.lastResponse = ""
@@ -282,8 +316,7 @@ class TheBrain:
         3. Look for regexp match        
         """
 
-        # print "ENTERING WAIT FOR COMMAND"
-
+        # match to system commands
 
         if message in self.systemCommands:
 
@@ -291,7 +324,14 @@ class TheBrain:
 
             return self.systemCommandHandlers[message](message, True)
 
-        #return ("got a comman","i donno")
+        # match to keywords
+        
+        if message in self.irKeywords:
+
+            self.resetHandshakeTimeout()
+
+            return self.irHandler(message,self.irKeywords[message])
+                        
         return ("HAVE_COMMUNICATION_HANDSHAKE","i have no keyword matching [%s]" % message)
 
         
@@ -327,17 +367,42 @@ class TheBrain:
         # check for timeout to reset de context to default mode
         if (self.communicationHandshakeTimestamp + 10) <= time.time():
             self.setDefaultContext()
+            self.resetHandshakeTimeout()
 
+        # check for reestablishing or resetting handshake
+        # this will enable users to jump back directly to default mode from any context
 
-        # we have the current context in self.context. Send the message to the correct context handler
-        (self.context,response) = self.contextMessageHandler[self.context](message)
+        if message in ["pi","bi","pie"]:
+            (self.context,response) = self.contextMessageHandler["NO_COMMUNICATION_HANDSHAKE"](message)
 
-        self.lastResponse = response
+            self.lastResponse = response
 
-        # reset the timeout. Give the user another 10 seconds behore handshake breaks
-        self.resetHandshakeTimeout()
+            return response
+
+        ## TODO!!! Enable user to reset back to NO_COMMUNICATION_HANDSHAKE
         
-        return response
+
+        # lets see if there is a message handler for this specific context
+        elif self.context in self.contextMessageHandler:
+
+            # we have the current context in self.context. Send the message to the correct context handler
+            (self.context,response) = self.contextMessageHandler[self.context](message)            
+
+            self.lastResponse = response
+
+            # reset the timeout. Give the user another 10 seconds behore handshake breaks
+            self.resetHandshakeTimeout()
+        
+            return response
+
+        # since there is no message handler for this context simply ignore it
+        else:
+
+            response = "Ignoring this since [%s] have no message handler" % self.context
+
+            self.lastResponse = response
+
+            return response
 
     def addUser(self,username,pw):
 
@@ -349,10 +414,15 @@ class TheBrain:
         us = ValidUsers("users.csv")
         return us.users
 
+    def loadKeywords(self):
+
+        i = IRandKeyword("irandkey.csv")
+        self.irKeywords = i.keywords
+        print self.irKeywords
+
     def getKeywords(self):
 
-        ik = IRandKeyword("irandkey.csv")
-        return ik.keywords
+        return self.irKeywords
         
 
     def __str__(self):
@@ -410,13 +480,16 @@ def runBrainInTextMode():
 
     i = None
 
-    print "Wellome to the brain"
+    print "================== Wellome to the brain =================="    
     print "i:ir code - to enter ir code"
     print "b:adduser - adds a user"
     
     print "b:status - to print status"
     print "b:users - to print all users"
     print "b:keywords - to print all users"
+    print
+    print "exit - to terminate"
+    print "==========================================================="
 
     while i != "exit":
 
@@ -455,10 +528,7 @@ def runBrainInTextMode():
 
             b.addMessage(i)
 
-            print "%s\t%s" % (b.lastResponse,b.context)
-        
-        # KeyError: 'ADDING_DEVICE_IR' when sending message for context at line 333
-        
+            print "%s\t%s" % (b.lastResponse,b.context)       
     
 if __name__ == "__main__":
 
