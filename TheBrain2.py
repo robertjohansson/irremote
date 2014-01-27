@@ -418,7 +418,6 @@ class TheBrain:
 
         i = IRandKeyword("irandkey.csv")
         self.irKeywords = i.keywords
-        print self.irKeywords
 
     def getKeywords(self):
 
