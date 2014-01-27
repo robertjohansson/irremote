@@ -4,17 +4,12 @@ add hppts support
 	- enable refreshing of speech to text without confirm
 button to mute
 
-json parser to enable different feedback
+add json parser to enable different feedback
 	- iframe to open webpages
 	- send text
 	- send voice
 	- send html
 	- send div innerhtml
-
-add json to support different feedback
-	- text
-	- speech
-	- html
 
 [THE BRAIN]
 
@@ -33,3 +28,6 @@ Add Class to be inhereted by all context handlers
 
 	- wolfram alpha
 	- language to language translator
+	- reminder pushing to pushover
+	- ir remote
+	- switch circut handler
