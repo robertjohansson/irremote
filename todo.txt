@@ -1,0 +1,30 @@
+[HTML5]
+
+add hppts support
+	- enable refreshing of speech to text without confirm
+	- button to mute
+	- ifram to open webpages
+	- json parser to enable different feedback
+
+add json to support different feedback
+	- text
+	- speech
+	- html
+
+[THE BRAIN]
+
+Remove handlers as outside imports
+Return multiple responses
+Read a settingsfile at startup
+	- what files to import(handlers, users)
+
+
+[CONTEXT HANDLERS]
+
+Add Class to be inhereted by all context handlers
+	- link between the brain and context handlers
+
+[IDEAS FOR CONTEXT HANDLERS]
+
+	- wolfram alpha
+	- language to language translator
