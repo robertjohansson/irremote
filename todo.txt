@@ -2,9 +2,14 @@
 
 add hppts support
 	- enable refreshing of speech to text without confirm
-	- button to mute
-	- ifram to open webpages
-	- json parser to enable different feedback
+button to mute
+
+json parser to enable different feedback
+	- iframe to open webpages
+	- send text
+	- send voice
+	- send html
+	- send div innerhtml
 
 add json to support different feedback
 	- text
